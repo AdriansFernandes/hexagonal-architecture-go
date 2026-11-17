@@ -7,6 +7,10 @@ import (
 	"github.com/bendevjunior/hexagonal-architecture-go/internal/modules/transfers/application"
 	"github.com/bendevjunior/hexagonal-architecture-go/internal/modules/transfers/domain"
 	"github.com/bendevjunior/hexagonal-architecture-go/internal/modules/transfers/entrypoints/httpapi"
+
+	accountsmemory "github.com/bendevjunior/hexagonal-architecture-go/internal/modules/accounts/adapters/persistence/memory"
+	accountsapp "github.com/bendevjunior/hexagonal-architecture-go/internal/modules/accounts/application"
+	accountshttp "github.com/bendevjunior/hexagonal-architecture-go/internal/modules/accounts/entrypoints/httpapi"
 )
 
 func Bootstrap() http.Handler {
@@ -17,6 +21,10 @@ func Bootstrap() http.Handler {
 	transfer := application.NewTransferService(accounts)
 	handler := httpapi.NewHandler(transfer)
 
-	routeHandlers := []RouteRegister{handler}
+	accountRepository := accountsmemory.NewAccounts()
+	accountService := accountsapp.NewAccountService(accountRepository)
+	accountsHandler := accountshttp.NewHandler(accountService)
+
+	routeHandlers := []RouteRegister{handler, accountsHandler}
 	return NewRouter(routeHandlers...)
 }
